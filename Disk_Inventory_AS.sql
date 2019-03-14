@@ -1,8 +1,9 @@
-/******************************************************
+/********************************************************************************************
 * Name				Date				Description
 * Aaron Smith		2/28/19				Initial development of disk_inventory
 * Aaron Smith		3/8/19				Insert table data into Tables
-******************************************************/
+* Aaron Smith		3/14/19				Creation of scripts to show data
+*********************************************************************************************/
 use master
 go
 
@@ -109,7 +110,7 @@ create user diskUserAS
 go
 alter role db_datareader add member diskUserAS
 go
------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 --Project 3
 -- Insert Data to the DiskStatus Table
 USE [diskInventoryAS]
@@ -216,7 +217,7 @@ INSERT INTO [dbo].[artist]
 		   ('Linkin Park', null, 1),
 		   ('Mark', 'Morton', 2),
 		   ('Shinedown', null, 1),
-		   ('Katy', 'Perry', 1)
+		   ('Katy', 'Perry', 2)
 GO
 
 --Insert Data to Disk Table
@@ -326,9 +327,78 @@ DELETE FROM [dbo].[borrower]
       WHERE borrower_id = 20
 GO
 
+----------------------------------------------------------------------------------------------------------------
+--Project 4
 
---Query to get loans not returned yet
+--Show disks associated with solo artits
+USE diskInventoryAS
+GO
 
-select * from diskHasBorrower
+--3.
+Select disk_name, convert(varchar(10), Release_date, 101) as 'Release Date', 
+	   A.Fname as 'Artist First Name', A.Lname as 'Artist Last Name'
+from Disk D
+join diskHasArtist DhA
+on D.disk_ID = DhA.Disk_ID
+join Artist A
+on DhA.Artist_ID = A.Artist_ID
+where A.Artist_Type = 2
+order by lname, fname
+go
+
+--4.
+create view ViewIndividualArtist as
+	Select * from Artist
+	where Artist_Type = 2
+go
+Select Fname as 'First Name', Lname as 'Last Name'
+from ViewIndividualArtist
+order by Lname, Fname
+go
+
+--5.
+Select disk_name, convert(varchar(10), Release_date, 101) as 'Release Date', Fname as 'Band Name'
+from Disk D
+join diskHasArtist DhA
+on D.Disk_ID = DhA.Disk_ID
+join Artist A
+on DhA.Artist_ID = A.artist_id
+where not exists
+	(select Artist_ID
+	 from ViewIndividualArtist
+	 where ViewIndividualArtist.artist_id = A.artist_id)
+order by Fname
+go
+
+--6.
+select fname as 'First Name', lname as 'Last Name', Disk_Name, 
+	   convert(varchar(10), Borrowed_date, 101) as 'Borrow Date', convert(varchar(10), Returned_date, 101) as 'Return Date'
+from borrower B
+join diskHasBorrower DhB
+on B.borrower_id = Dhb.borrower_id
+join Disk D
+on Dhb.disk_id = D.disk_id
+order by lname, fname, disk_name, borrowed_date, returned_date
+go
+
+--7.
+Select D.Disk_id, disk_name, count(DhB.disk_id) as 'Times Borrowed'
+from Disk D
+join diskHasBorrower DhB
+on D.Disk_id = DhB.Disk_ID
+group by D.Disk_ID, disk_name
+order by Disk_ID
+go
+
+--8.
+select  Disk_Name, convert(varchar(10), Borrowed_date, 101) as 'Borrow Date', 
+	    convert(varchar(10), Returned_date, 101) as 'Return Date',
+		fname + ' ' + lname as 'Borrower Name'
+from borrower B
+join diskHasBorrower DhB
+on B.borrower_id = Dhb.borrower_id
+join Disk D
+on Dhb.disk_id = D.disk_id
 where returned_date is null
+order by disk_name
 go
