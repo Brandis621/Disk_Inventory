@@ -3,6 +3,7 @@
 * Aaron Smith		2/28/19				Initial development of disk_inventory
 * Aaron Smith		3/8/19				Insert table data into Tables
 * Aaron Smith		3/14/19				Creation of scripts to show data
+* Aaron smith		3/20/19				Created Stored Procedures for modifying table data
 *********************************************************************************************/
 use master
 go
@@ -402,3 +403,221 @@ on Dhb.disk_id = D.disk_id
 where returned_date is null
 order by disk_name
 go
+
+---------------------------------------------------------------------------------------------
+--Project 5
+USE DiskInventoryAS;
+GO
+
+--Procedure to Insert Artists--------------------------
+Drop proc if exists sp_ArtistInsert
+go
+
+CREATE PROC sp_ArtistInsert
+	@ArtistFName varchar(100),
+	@ArtistLName varchar(100),
+	@TypeofArtist int
+
+AS
+
+BEGIN TRY --Begin Error Handling
+INSERT INTO artist
+           (fname
+           ,lname
+           ,artist_type)
+     VALUES
+           (@ArtistFName, @ArtistLName, @TypeofArtist)
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Update Artists--------------------------------
+Drop proc if exists sp_ArtistUpdate
+go
+
+CREATE PROC sp_ArtistUpdate
+	@ArtistFName varchar(100),
+	@ArtistLName varchar(100),
+	@ArtistID int
+
+AS
+
+BEGIN TRY --Begin Error Handling
+UPDATE artist
+   SET fname = @ArtistFName,
+       lname = @ArtistLName
+ WHERE Artist_ID = @ArtistID
+
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Delete Artists--------------------------------
+Drop proc if exists sp_ArtistDelete
+go
+
+CREATE PROC sp_ArtistDelete
+	@ArtistID int
+AS
+
+BEGIN TRY --Begin Error Handling
+DELETE FROM artist
+      WHERE Artist_ID = @ArtistID
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Insert Borrower--------------------------
+Drop proc if exists sp_BorrowerInsert
+go
+
+CREATE PROC sp_BorrowerInsert
+	@BorrowerFName varchar(100),
+	@BorrowerLName varchar(100),
+	@Phone VarChar(50)
+
+AS
+
+BEGIN TRY --Begin Error Handling
+INSERT INTO borrower
+           (fname, lname, phoneNumber)
+     VALUES
+           (@BorrowerFName, @BorrowerLName, @Phone)
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Update Borrower--------------------------------
+Drop proc if exists sp_BorrowerUpdate
+go
+
+CREATE PROC sp_BorrowerUpdate
+	@BorrowerFName varchar(100),
+	@BorrowerLName varchar(100),
+	@BorrowerID int
+
+AS
+
+BEGIN TRY --Begin Error Handling
+UPDATE borrower
+   SET fname = @BorrowerFName,
+       lname = @BorrowerLName
+ WHERE Borrower_ID = @BorrowerID
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Delete Borrower--------------------------------
+Drop proc if exists sp_BorrowerDelete
+go
+
+CREATE PROC sp_BorrowerDelete
+	@BorrowerID int
+AS
+
+BEGIN TRY --Begin Error Handling
+DELETE FROM borrower
+      WHERE Borrower_ID = @BorrowerID
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Insert Disk--------------------------
+Drop proc if exists sp_DiskInsert
+go
+
+CREATE PROC sp_DiskInsert
+	@DiskName varchar(100),
+	@Release_Date DateTime,
+	@Status_ID int,
+	@Genre_ID int,
+	@Disk_Type_ID int
+
+AS
+
+BEGIN TRY --Begin Error Handling
+INSERT INTO Disk
+           (Disk_Name, Release_Date, Status_ID, Genre_ID, Disk_Type_ID)
+     VALUES
+           (@DiskName, @Release_Date, @Status_ID, @Genre_ID, @Disk_Type_ID)
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Update Disk--------------------------------
+Drop proc if exists sp_DiskUpdate
+go
+
+CREATE PROC sp_DiskUpdate
+	@DiskID int,
+	@DiskName varchar(100),
+	@Release_Date DateTime,
+	@Status_ID int,
+	@Genre_ID int,
+	@Disk_Type_ID int
+
+AS
+
+BEGIN TRY --Begin Error Handling
+UPDATE Disk
+   SET 
+    Disk_Name = @DiskName,
+	Release_Date = @Release_Date,
+	Status_Id = @Status_ID,
+	Genre_ID = @Genre_ID,
+	Disk_Type_ID = @Disk_Type_ID
+ WHERE Disk_ID = @DiskID
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+--Procedure to Delete Disk--------------------------------
+Drop proc if exists sp_DiskDelete
+go
+
+CREATE PROC sp_DiskDelete
+	@DiskID int
+AS
+
+BEGIN TRY --Begin Error Handling
+DELETE FROM Disk
+      WHERE Disk_ID = @DiskID
+END TRY
+begin catch
+	print 'An Error Occurred: ' + Error_Message()
+end catch --End Error Handling
+GO
+
+
+--To call Artist sp:
+Exec sp_ArtistInsert 'John', 'Doe', 2;
+Exec sp_ArtistUpdate 'John', 'Lennon', 21;
+Exec sp_ArtistDelete 21;
+
+--To call Borrower sp:
+Exec sp_BorrowerInsert 'John', 'Doe', '208-751-9569';
+Exec sp_BorrowerUpdate 'John', 'Lennon', 21;
+Exec sp_BorrowerDelete 21;
+
+--To call Disk sp:
+Exec sp_DiskInsert 'Threat to Survival', 'January 1, 2015', 1, 2, 1;
+Exec sp_DiskUpdate 21, 'Threat to Survival', 'January 1, 2018', 2, 3, 2;
+Exec sp_DiskDelete 21;
+
+
